@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Shortlist - CVisionary</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0066ff;
+            --secondary-color: #e8f0fe;
+            --text-dark: #2c3e50;
+            --text-light: #ffffff;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f5f7fa;
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-bar {
+            background-color: var(--primary-color);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 1.5rem;
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-bar a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+        }
+
+        .nav-bar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-bar a.active {
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .nav-bar .logout-btn {
+            background-color: #ff4444;
+            margin-left: auto;
+        }
+
+        .nav-bar .logout-btn:hover {
+            background-color: #ff0000;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .dashboard-title {
+            color: var(--text-dark);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .filter-section {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .filter-group input, .filter-group select {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+            height: 45px;
+            box-sizing: border-box;
+        }
+
+        .filter-group input:focus, .filter-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+        }
+
+        .btn-primary:hover {
+            background-color: #0052cc;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: var(--text-light);
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .btn-export {
+            background-color: #28a745;
+            color: var(--text-light);
+        }
+
+        .btn-export:hover {
+            background-color: #218838;
+            transform: translateY(-1px);
+        }
+
+        .results-section {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+        }
+
+        .results-header {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            padding: 1rem 2rem;
+            font-weight: 500;
+        }
+
+        .candidate-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .candidate-table th {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 500;
+            border-bottom: 1px solid #eee;
+        }
+
+        .candidate-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .candidate-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .candidate-table tr:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .academic-score {
+            font-weight: 600;
+            color: #4CAF50;
+        }
+
+        .academic-score.low {
+            color: #f44336;
+        }
+
+        .academic-score.medium {
+            color: #ff9800;
+        }
+
+        .academic-score.high {
+            color: #4CAF50;
+        }
+
+        .skills-tag {
+            display: inline-block;
+            background-color: #e3f2fd;
+            color: #1976d2;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin: 0.1rem;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav-bar {
+                flex-wrap: wrap;
+                padding: 1rem;
+            }
+            
+            .container {
+                padding: 0 0.5rem;
+            }
+            
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .candidate-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .stats-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <a href="{{ url_for('admin_page') }}">Dashboard</a>
+        <a href="{{ url_for('resume_statistics') }}">View Statistics</a>
+        <a href="{{ url_for('candidate_shortlist') }}">Candidate Shortlist</a>
+        <a href="{{ url_for('advanced_shortlist') }}" class="active">Advanced Shortlist</a>
+        <a href="{{ url_for('search_candidates') }}">Search Candidates</a>
+        <a href="{{ url_for('admin_logout') }}" class="logout-btn">Logout</a>
+    </nav>
+
+    <div class="container">
+        <h1 class="dashboard-title">Advanced Candidate Shortlist</h1>
+        
+        <div class="filter-section">
+            <h3 style="margin-bottom: 1.5rem; color: var(--text-dark);">Academic Performance Filters</h3>
+            <form method="POST">
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label for="min_ats_score">Minimum ATS Score (%)</label>
+                        <input type="number" id="min_ats_score" name="min_ats_score" min="0" max="100" step="1" 
+                               value="{{ filters.get('min_ats_score', '') }}" placeholder="e.g., 60">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="min_cgpa">Minimum CGPA</label>
+                        <input type="number" id="min_cgpa" name="min_cgpa" min="0" max="10" step="0.1" 
+                               value="{{ filters.get('min_cgpa', '') }}" placeholder="e.g., 7.5">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="min_percentage">Minimum Academic Percentage (%)</label>
+                        <input type="number" id="min_percentage" name="min_percentage" min="0" max="100" step="1" 
+                               value="{{ filters.get('min_percentage', '') }}" placeholder="e.g., 60">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="min_graduation_year">Minimum Graduation Year</label>
+                        <input type="number" id="min_graduation_year" name="min_graduation_year" min="1990" max="2030" 
+                               value="{{ filters.get('min_graduation_year', '') }}" placeholder="e.g., 2020">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="skills_filter">Required Skills (comma-separated)</label>
+                        <input type="text" id="skills_filter" name="skills_filter" 
+                               value="{{ filters.get('skills_filter', '') }}" placeholder="e.g., Python, Java, SQL">
+                    </div>
+                </div>
+                
+                <div class="filter-buttons">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <a href="{{ url_for('advanced_shortlist') }}" class="btn btn-secondary">Clear Filters</a>
+                    {% if candidates %}
+                    <a href="{{ url_for('export_advanced_shortlist') }}" class="btn btn-export">Export Results</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        {% if candidates %}
+        <div class="stats-summary">
+            <div class="stat-card">
+                <div class="stat-number">{{ candidates|length }}</div>
+                <div class="stat-label">Candidates Found</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">
+                    {% set avg_ats = (candidates|map(attribute='ats_score')|sum) / candidates|length %}
+                    {{ "%.1f"|format(avg_ats) }}%
+                </div>
+                <div class="stat-label">Average ATS Score</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">
+                    {% set cgpa_candidates = candidates|selectattr('cgpa')|list %}
+                    {{ cgpa_candidates|length }}
+                </div>
+                <div class="stat-label">Candidates with CGPA</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">
+                    {% set percentage_candidates = candidates|selectattr('academic_percentage')|list %}
+                    {{ percentage_candidates|length }}
+                </div>
+                <div class="stat-label">Candidates with Percentage</div>
+            </div>
+        </div>
+
+        <div class="results-section">
+            <div class="results-header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Shortlisted Candidates ({{ candidates|length }} results)</span>
+                    <a href="{{ url_for('export_advanced_shortlist') }}" class="btn btn-export" style="margin: 0; padding: 0.5rem 1rem; font-size: 0.9rem;">
+                        📊 Export to CSV
+                    </a>
+                </div>
+            </div>
+            
+            <table class="candidate-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>ATS Score</th>
+                        <th>CGPA</th>
+                        <th>Academic %</th>
+                        <th>Graduation Year</th>
+                        <th>Skills</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for candidate in candidates %}
+                    <tr>
+                        <td><strong>{{ candidate.name }}</strong></td>
+                        <td>{{ candidate.email }}</td>
+                        <td>{{ candidate.phone }}</td>
+                        <td class="academic-score {% if candidate.ats_score >= 80 %}high{% elif candidate.ats_score >= 60 %}medium{% else %}low{% endif %}">
+                            {{ candidate.ats_score }}%
+                        </td>
+                        <td class="academic-score {% if candidate.cgpa and candidate.cgpa|float >= 8.0 %}high{% elif candidate.cgpa and candidate.cgpa|float >= 7.0 %}medium{% elif candidate.cgpa %}low{% endif %}">
+                            {{ candidate.cgpa if candidate.cgpa else 'N/A' }}
+                        </td>
+                        <td class="academic-score {% if candidate.academic_percentage and candidate.academic_percentage|float >= 80 %}high{% elif candidate.academic_percentage and candidate.academic_percentage|float >= 60 %}medium{% elif candidate.academic_percentage %}low{% endif %}">
+                            {{ candidate.academic_percentage + '%' if candidate.academic_percentage else 'N/A' }}
+                        </td>
+                        <td>{{ candidate.graduation_year if candidate.graduation_year else 'N/A' }}</td>
+                        <td>
+                            {% for skill in candidate.skills[:5] %}
+                            <span class="skills-tag">{{ skill }}</span>
+                            {% endfor %}
+                            {% if candidate.skills|length > 5 %}
+                            <span class="skills-tag">+{{ candidate.skills|length - 5 }} more</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ candidate.city }}, {{ candidate.region }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="no-results">
+            <h3>No candidates found matching your criteria</h3>
+            <p>Try adjusting your filters to see more results.</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html> 

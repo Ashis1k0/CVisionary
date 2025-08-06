@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Analyzer</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="page-wrapper">
+        <div class="container">
+            <header class="hero-section">
+                <div class="hero-content">
+                    <h1>AI Resume Analyzer</h1>
+                    <p>Transform your resume into a powerful tool for your career journey</p>
+                    <div class="auth-links" style="position: absolute; top: 20px; right: 40px;">
+                        <div id="auth-area">
+                            <!-- Dynamic login/logout area -->
+                            <a href="{{ url_for('user_login') }}" class="auth-btn login-btn">Login</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main>
+                <div class="upload-container">
+                    <div class="upload-area" id="dropZone">
+                        <div class="upload-content">
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <h3>Drag & Drop your resume here</h3>
+                            <p class="upload-divider">or</p>
+                            <label for="fileInput" class="upload-button">
+                                <i class="fas fa-folder-open"></i>
+                                Browse Files
+                            </label>
+                            <input type="file" id="fileInput" accept=".pdf,.docx" hidden>
+                            <p class="supported-formats">Supported formats: PDF, DOCX</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-container hidden" id="resultsSection">
+                    <div class="results-content">
+                        <div class="section-header">
+                            <h2><i class="fas fa-file-alt"></i> Resume Analysis</h2>
+                        </div>
+                        
+                        <div class="analysis-grid">
+                            <div class="analysis-card">
+                                <h3><i class="fas fa-user"></i> Personal Details</h3>
+                                <div class="card-content">
+                                    <p><strong>Name:</strong> <span id="name" class="name-value"></span></p>
+                                    <p><strong>Email:</strong> <span id="email"></span></p>
+                                    <p><strong>Phone:</strong> <span id="phone"></span></p>
+                                </div>
+                            </div>
+
+                            <div class="analysis-card">
+                                <h3><i class="fas fa-tools"></i> Skills</h3>
+                                <div id="skills" class="skills-list card-content"></div>
+                            </div>
+
+                            <div class="analysis-card">
+                                <h3><i class="fas fa-graduation-cap"></i> Education</h3>
+                                <div id="education" class="education-list card-content"></div>
+                            </div>
+
+                            <div class="analysis-card">
+                                <h3><i class="fas fa-briefcase"></i> Experience</h3>
+                                <div id="experience" class="experience-list card-content"></div>
+                            </div>
+
+                            <div class="analysis-card">
+                                <h3><i class="fas fa-project-diagram"></i> Projects</h3>
+                                <div id="projects" class="projects-list card-content"></div>
+                            </div>
+                        </div>
+
+                        <div class="action-section">
+                            <button id="atsScoreBtn" class="action-button primary">
+                                <i class="fas fa-chart-line"></i>
+                                Calculate ATS Score
+                            </button>
+                            <button id="jobRecommendBtn" class="action-button secondary">
+                                <i class="fas fa-bullseye"></i>
+                                Get Job Recommendations
+                            </button>
+                            <button id="downloadReportBtn" class="action-button success download-report">
+                                <i class="fas fa-file-pdf"></i>
+                                Download Report
+                            </button>
+                        </div>
+
+                        <div class="score-section hidden" id="atsScoreSection">
+                            <h2><i class="fas fa-star"></i> ATS Score</h2>
+                            <div class="score-display">
+                                <div class="score-circle ats-score">
+                                    <span id="atsScoreValue">0</span>%
+                                </div>
+                                <p class="score-info">This score indicates how well your resume might perform in Applicant Tracking Systems.</p>
+                            </div>
+                            <div class="improvements-section">
+                                <h3><i class="fas fa-lightbulb"></i> Suggested Improvements</h3>
+                                <ul id="improvementsList" class="improvements-list"></ul>
+                            </div>
+                        </div>
+
+                        <div class="recommendations-section hidden" id="jobRecommendationsSection">
+                            <h2><i class="fas fa-bullseye"></i> Job Recommendations</h2>
+                            <div id="recommendationsList" class="recommendations-list recommendations-grid"></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <div class="loading-overlay hidden" id="loadingOverlay">
+            <div class="loader-content">
+                <div class="loader-icon">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <p>Processing your resume...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+    async function downloadReport() {
+        try {
+            const response = await fetch('/generate-report', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: document.getElementById('name').textContent || '',
+                    ats_score: document.getElementById('atsScoreValue').textContent || '',
+                    skills: Array.from(document.getElementById('skills').children).map(item => item.textContent),
+                    education: Array.from(document.getElementById('education').children).map(item => item.textContent),
+                    experience: Array.from(document.getElementById('experience').children).map(item => item.textContent),
+                    improvements: Array.from(document.getElementById('improvementsList').children).map(item => item.textContent),
+                    recommendations: Array.from(document.getElementById('recommendationsList').children).map(item => item.textContent)
+                })
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = "resume_analysis.pdf";
+                
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                
+                window.URL.revokeObjectURL(downloadUrl);
+            } else {
+                throw new Error('Failed to generate PDF');
+            }
+        } catch (error) {
+            console.error('Error downloading report:', error);
+            alert('Failed to download the report. Please try again.');
+        }
+    }
+
+    document.getElementById('downloadReportBtn').addEventListener('click', downloadReport);
+
+    // User session logic (injected by Flask)
+    {% if session.get('user_logged_in') %}
+        document.getElementById('auth-area').innerHTML = `<span style='margin-right:10px;'>{{ session['username'] }}</span><a href='{{ url_for('user_logout') }}' class='auth-btn logout-btn'>Logout</a>`;
+    {% endif %}
+    </script>
+</body>
+</html>

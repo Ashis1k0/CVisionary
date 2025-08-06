@@ -1,0 +1,10 @@
+form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+form input, form button {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Statistics - CVisionary</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #0066ff;
+            --secondary-color: #e8f0fe;
+            --text-dark: #2c3e50;
+            --text-light: #ffffff;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f5f7fa;
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-bar {
+            background-color: var(--primary-color);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 1.5rem;
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-bar a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+        }
+
+        .nav-bar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-bar a.active {
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .nav-bar .logout-btn {
+            background-color: #ff4444;
+            margin-left: auto;
+        }
+
+        .nav-bar .logout-btn:hover {
+            background-color: #ff0000;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .dashboard-title {
+            color: var(--text-dark);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        .stats-card h2 {
+            color: var(--primary-color);
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stats-card h2 i {
+            font-size: 1.1em;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .stats-table {
+            margin-top: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .stats-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .stats-table th,
+        .stats-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .stats-table th {
+            background-color: var(--secondary-color);
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .stats-table tr:hover {
+            background-color: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            .nav-bar {
+                flex-wrap: wrap;
+                padding: 1rem;
+            }
+            
+            .container {
+                padding: 0 0.5rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+            
+            .stats-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <a href="{{ url_for('admin_page') }}">Dashboard</a>
+        <a href="{{ url_for('resume_statistics') }}" class="active">View Statistics</a>
+        <a href="{{ url_for('candidate_shortlist') }}">Candidate Shortlist</a>
+        <a href="{{ url_for('advanced_shortlist') }}">Advanced Shortlist</a>
+        <a href="{{ url_for('search_candidates') }}">Search Candidates</a>
+        <a href="{{ url_for('admin_logout') }}" class="logout-btn">Logout</a>
+    </nav>
+
+    <div class="container">
+        <h1 class="dashboard-title">Resume Statistics</h1>
+
+        <div class="stats-grid">
+            <!-- City Statistics -->
+            <div class="stats-card">
+                <h2><i class="fas fa-city"></i> Cities Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="cityChart"></canvas>
+                </div>
+                <div class="stats-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>City</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for city, count in city_stats.items() %}
+                            <tr>
+                                <td>{{ city }}</td>
+                                <td>{{ count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Region Statistics -->
+            <div class="stats-card">
+                <h2><i class="fas fa-map-marked-alt"></i> Regions Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="regionChart"></canvas>
+                </div>
+                <div class="stats-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Region</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for region, count in region_stats.items() %}
+                            <tr>
+                                <td>{{ region }}</td>
+                                <td>{{ count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Degree Statistics -->
+            <div class="stats-card">
+                <h2><i class="fas fa-graduation-cap"></i> Degrees Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="degreeChart"></canvas>
+                </div>
+                <div class="stats-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Degree</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for degree, count in degree_stats.items() %}
+                            <tr>
+                                <td>{{ degree }}</td>
+                                <td>{{ count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Top Skills -->
+            <div class="stats-card">
+                <h2><i class="fas fa-tools"></i> Top 10 Skills</h2>
+                <div class="chart-container">
+                    <canvas id="skillsChart"></canvas>
+                </div>
+                <div class="stats-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Skill</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for skill, count in skill_stats.items() %}
+                            <tr>
+                                <td>{{ skill }}</td>
+                                <td>{{ count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to create charts
+        function createChart(elementId, labels, data, title, type = 'bar') {
+            const ctx = document.getElementById(elementId).getContext('2d');
+            return new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: title,
+                        data: data,
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.5)',
+                            'rgba(255, 99, 132, 0.5)',
+                            'rgba(75, 192, 192, 0.5)',
+                            'rgba(255, 206, 86, 0.5)',
+                            'rgba(153, 102, 255, 0.5)',
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(153, 102, 255, 1)',
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create charts when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // City Chart
+            createChart(
+                'cityChart',
+                {{ city_stats.keys() | list | tojson }},
+                {{ city_stats.values() | list | tojson }},
+                'Candidates by City'
+            );
+
+            // Region Chart
+            createChart(
+                'regionChart',
+                {{ region_stats.keys() | list | tojson }},
+                {{ region_stats.values() | list | tojson }},
+                'Candidates by Region',
+                'pie'
+            );
+
+            // Degree Chart
+            createChart(
+                'degreeChart',
+                {{ degree_stats.keys() | list | tojson }},
+                {{ degree_stats.values() | list | tojson }},
+                'Candidates by Degree',
+                'doughnut'
+            );
+
+            // Skills Chart
+            createChart(
+                'skillsChart',
+                {{ skill_stats.keys() | list | tojson }},
+                {{ skill_stats.values() | list | tojson }},
+                'Top Skills'
+            );
+        });
+    </script>
+</body>
+</html> 

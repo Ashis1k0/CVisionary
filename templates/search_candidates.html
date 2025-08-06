@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Candidates - CVisionary</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0066ff;
+            --secondary-color: #e8f0fe;
+            --text-dark: #2c3e50;
+            --text-light: #ffffff;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f5f7fa;
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-bar {
+            background-color: var(--primary-color);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 1.5rem;
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-bar a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+        }
+
+        .nav-bar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-bar a.active {
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .nav-bar .logout-btn {
+            background-color: #ff4444;
+            margin-left: auto;
+        }
+
+        .nav-bar .logout-btn:hover {
+            background-color: #ff0000;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .dashboard-title {
+            color: var(--text-dark);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .search-form {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e8ed;
+            border-radius: var(--border-radius);
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            color: var(--text-light);
+        }
+
+        .search-btn {
+            background-color: var(--primary-color);
+        }
+
+        .export-btn {
+            background-color: #4CAF50;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .resume-table {
+            width: 100%;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            border-collapse: collapse;
+        }
+
+        .resume-table th {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .resume-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .resume-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .resume-table tr:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .ats-score {
+            font-weight: 600;
+            color: #4CAF50;
+        }
+
+        .academic-score {
+            font-weight: 600;
+            color: #4CAF50;
+        }
+
+        .academic-score.low {
+            color: #f44336;
+        }
+
+        .academic-score.medium {
+            color: #ff9800;
+        }
+
+        .academic-score.high {
+            color: #4CAF50;
+        }
+
+        @media (max-width: 768px) {
+            .nav-bar {
+                flex-wrap: wrap;
+                padding: 1rem;
+            }
+            
+            .container {
+                padding: 0 0.5rem;
+            }
+            
+            .search-form {
+                flex-direction: column;
+            }
+            
+            .form-group {
+                width: 100%;
+            }
+            
+            .resume-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-top: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <a href="{{ url_for('admin_page') }}">Dashboard</a>
+        <a href="{{ url_for('resume_statistics') }}">View Statistics</a>
+        <a href="{{ url_for('candidate_shortlist') }}">Candidate Shortlist</a>
+        <a href="{{ url_for('advanced_shortlist') }}">Advanced Shortlist</a>
+        <a href="{{ url_for('search_candidates') }}" class="active">Search Candidates</a>
+        <a href="{{ url_for('admin_logout') }}" class="logout-btn">Logout</a>
+    </nav>
+
+    <div class="container">
+        <h1 class="dashboard-title">Search Candidates</h1>
+
+        <form class="search-form" method="GET" action="/search-candidates">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" placeholder="Search by name">
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="text" id="phone" name="phone" placeholder="Search by phone">
+            </div>
+            <div class="form-group">
+                <label for="ats_score">Minimum ATS Score</label>
+                <input type="number" id="ats_score" name="ats_score" placeholder="Min ATS Score">
+            </div>
+            <div class="form-group">
+                <label for="skills">Skills</label>
+                <input type="text" id="skills" name="skills" placeholder="Search by skills (comma separated)">
+            </div>
+            <button type="submit" class="btn search-btn">Search</button>
+            <a href="/export-data" class="btn export-btn">Export CSV</a>
+        </form>
+
+        <table class="resume-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>NAME</th>
+                    <th>PHONE</th>
+                    <th>ATS SCORE</th>
+                    <th>CGPA</th>
+                    <th>ACADEMIC %</th>
+                    <th>GRADUATION YEAR</th>
+                    <th>UPLOADED AT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for resume in results %}
+                <tr>
+                    <td>{{ resume[0] }}</td>
+                    <td>{{ resume[1] }}</td>
+                    <td>{{ resume[2] }}</td>
+                    <td class="ats-score">{{ resume[3] }}%</td>
+                    <td class="academic-score {% if resume[5] and resume[5]|float >= 8.0 %}high{% elif resume[5] and resume[5]|float >= 7.0 %}medium{% elif resume[5] %}low{% endif %}">
+                        {{ resume[5] if resume[5] else 'N/A' }}
+                    </td>
+                    <td class="academic-score {% if resume[6] and resume[6]|float >= 80 %}high{% elif resume[6] and resume[6]|float >= 60 %}medium{% elif resume[6] %}low{% endif %}">
+                        {{ resume[6] + '%' if resume[6] else 'N/A' }}
+                    </td>
+                    <td>{{ resume[7] if resume[7] else 'N/A' }}</td>
+                    <td>{{ resume[4] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

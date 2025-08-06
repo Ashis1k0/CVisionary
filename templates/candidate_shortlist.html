@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidate Shortlist - CVisionary</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0066ff;
+            --secondary-color: #e8f0fe;
+            --text-dark: #2c3e50;
+            --text-light: #ffffff;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f5f7fa;
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-bar {
+            background-color: var(--primary-color);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 1.5rem;
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-bar a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+        }
+
+        .nav-bar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-bar a.active {
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .nav-bar .logout-btn {
+            background-color: #ff4444;
+            margin-left: auto;
+        }
+
+        .nav-bar .logout-btn:hover {
+            background-color: #ff0000;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .dashboard-title {
+            color: var(--text-dark);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .resume-table {
+            width: 100%;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            border-collapse: collapse;
+        }
+
+        .resume-table th {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .resume-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .resume-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .resume-table tr:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .ats-score {
+            font-weight: 600;
+            color: #4CAF50;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+
+        @media (max-width: 768px) {
+            .nav-bar {
+                flex-wrap: wrap;
+                padding: 1rem;
+            }
+            
+            .container {
+                padding: 0 0.5rem;
+            }
+            
+            .resume-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <a href="{{ url_for('admin_page') }}">Dashboard</a>
+        <a href="{{ url_for('resume_statistics') }}">View Statistics</a>
+        <a href="{{ url_for('candidate_shortlist') }}" class="active">Candidate Shortlist</a>
+        <a href="{{ url_for('advanced_shortlist') }}">Advanced Shortlist</a>
+        <a href="{{ url_for('search_candidates') }}">Search Candidates</a>
+        <a href="{{ url_for('admin_logout') }}" class="logout-btn">Logout</a>
+    </nav>
+
+    <div class="container">
+        <h1 class="dashboard-title">Shortlisted Candidates</h1>
+        
+        {% if candidates %}
+        <div style="text-align: right; margin-bottom: 1rem;">
+            <a href="{{ url_for('export_candidate_shortlist') }}" class="btn" style="background-color: #28a745; color: white; text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 8px; display: inline-block;">
+                📊 Export to CSV
+            </a>
+        </div>
+        {% endif %}
+
+        <table class="resume-table">
+            <thead>
+                <tr>
+                    <th>NAME</th>
+                    <th>PHONE NUMBER</th>
+                    <th>ATS SCORE</th>
+                    <th>ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for candidate in candidates %}
+                <tr>
+                    <td>{{ candidate[1] }}</td>
+                    <td>{{ candidate[3] }}</td>
+                    <td class="ats-score">{{ candidate[8] }}%</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('delete_candidate', candidate_id=candidate[0]) }}" style="display: inline;">
+                            <button type="submit" class="btn-delete" onclick="return confirm('Are you sure you want to delete this candidate?')">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

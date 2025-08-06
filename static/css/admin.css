@@ -1,0 +1,205 @@
+/* Admin Dashboard Styles */
+:root {
+    --primary-color: #0066ff;
+    --secondary-color: #e8f0fe;
+    --text-dark: #2c3e50;
+    --text-light: #ffffff;
+    --border-radius: 8px;
+    --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #f5f7fa;
+    color: var(--text-dark);
+    margin: 0;
+    padding: 0;
+}
+
+.nav-bar {
+    background-color: var(--primary-color);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1.5rem;
+    box-shadow: var(--box-shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-bar a {
+    color: var(--text-light);
+    text-decoration: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 0.95rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+}
+
+.nav-bar a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.nav-bar a.active {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+.nav-bar .logout-btn {
+    background-color: #ff4444;
+    margin-left: auto;
+}
+
+.nav-bar .logout-btn:hover {
+    background-color: #ff0000;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.dashboard-title {
+    color: var(--text-dark);
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.resume-table {
+    width: 100%;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    overflow: hidden;
+}
+
+.resume-table th {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    padding: 1rem;
+    text-align: left;
+    font-weight: 500;
+}
+
+.resume-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.resume-table tr:last-child td {
+    border-bottom: none;
+}
+
+.resume-table tr:hover {
+    background-color: var(--secondary-color);
+}
+
+.action-btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    text-decoration: none;
+    margin: 0.25rem;
+    font-size: 0.9rem;
+    transition: transform 0.2s ease;
+}
+
+.action-btn:hover {
+    transform: translateY(-1px);
+}
+
+.skills-btn { background-color: #4CAF50; }
+.education-btn { background-color: #2196F3; }
+.experience-btn { background-color: #9C27B0; }
+.projects-btn { background-color: #FF9800; }
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    position: relative;
+    background-color: white;
+    margin: 10% auto;
+    padding: 2rem;
+    width: 80%;
+    max-width: 600px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+}
+
+.close-btn:hover {
+    color: #000;
+}
+
+.data-section {
+    margin: 1rem 0;
+}
+
+.data-section strong {
+    color: var(--primary-color);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .nav-bar {
+        flex-wrap: wrap;
+        padding: 1rem;
+    }
+    
+    .container {
+        padding: 0 0.5rem;
+    }
+    
+    .resume-table {
+        display: block;
+        overflow-x: auto;
+    }
+    
+    .action-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal.show {
+    display: block;
+    animation: fadeIn 0.3s ease-in-out;
+}

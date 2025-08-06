@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CVisionary</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0066ff;
+            --secondary-color: #e8f0fe;
+            --text-dark: #2c3e50;
+            --text-light: #ffffff;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f5f7fa;
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-bar {
+            background-color: var(--primary-color);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 1.5rem;
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-bar a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+        }
+
+        .nav-bar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-bar a.active {
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .nav-bar .logout-btn {
+            background-color: #ff4444;
+            margin-left: auto;
+        }
+
+        .nav-bar .logout-btn:hover {
+            background-color: #ff0000;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .dashboard-title {
+            color: var(--text-dark);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .resume-table {
+            width: 100%;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            border-collapse: collapse;
+        }
+
+        .resume-table th {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .resume-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .resume-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .resume-table tr:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .action-btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            color: var(--text-light);
+            text-decoration: none;
+            margin: 0.25rem;
+            font-size: 0.9rem;
+            transition: transform 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .skills-btn { background-color: #4CAF50; }
+        .education-btn { background-color: #2196F3; }
+        .experience-btn { background-color: #9C27B0; }
+        .projects-btn { background-color: #FF9800; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: white;
+            margin: 10% auto;
+            padding: 2rem;
+            width: 80%;
+            max-width: 600px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close-btn:hover {
+            color: #000;
+        }
+
+        .data-section {
+            margin: 1rem 0;
+        }
+
+        .data-section strong {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .nav-bar {
+                flex-wrap: wrap;
+                padding: 1rem;
+            }
+            
+            .container {
+                padding: 0 0.5rem;
+            }
+            
+            .resume-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .action-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 5% auto;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal.show {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <a href="{{ url_for('admin_page') }}" {% if request.endpoint == 'admin_page' %}class="active"{% endif %}>Dashboard</a>
+        <a href="{{ url_for('resume_statistics') }}" {% if request.endpoint == 'resume_statistics' %}class="active"{% endif %}>View Statistics</a>
+        <a href="{{ url_for('candidate_shortlist') }}" {% if request.endpoint == 'candidate_shortlist' %}class="active"{% endif %}>Candidate Shortlist</a>
+        <a href="{{ url_for('advanced_shortlist') }}" {% if request.endpoint == 'advanced_shortlist' %}class="active"{% endif %}>Advanced Shortlist</a>
+        <a href="{{ url_for('search_candidates') }}" {% if request.endpoint == 'search_candidates' %}class="active"{% endif %}>Search Candidates</a>
+        <a href="{{ url_for('admin_logout') }}" class="logout-btn">Logout</a>
+    </nav>
+
+    <div class="container">
+        <h1 class="dashboard-title">Admin Dashboard</h1>
+        
+        <table class="resume-table">
+            <thead>
+                <tr>
+                    <th>NAME</th>
+                    <th>PHONE NUMBER</th>
+                    <th>UPLOADED AT</th>
+                    <th>ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for resume in resumes %}
+                <tr>
+                    <td>{{ resume[1] }}</td>
+                    <td>{{ resume[3] }}</td>
+                    <td>{{ resume[9] }}</td>
+                    <td>
+                        <button class="action-btn skills-btn" onclick="showDetails('skills{{ resume[0] }}')">Skills</button>
+                        <button class="action-btn education-btn" onclick="showDetails('education{{ resume[0] }}')">Education</button>
+                        <button class="action-btn experience-btn" onclick="showDetails('experience{{ resume[0] }}')">Experience</button>
+                        <button class="action-btn projects-btn" onclick="showDetails('projects{{ resume[0] }}')">Projects</button>
+                        <button class="action-btn" style="background-color: #FF5722;" onclick="showDetails('academic{{ resume[0] }}')">Academic</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal for displaying details -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div id="modalContent" class="data-section"></div>
+        </div>
+    </div>
+
+    <script>
+        function showDetails(id) {
+            const modal = document.getElementById('detailsModal');
+            const modalContent = document.getElementById('modalContent');
+            const content = document.getElementById(id);
+            
+            if (content) {
+                modalContent.innerHTML = content.innerHTML;
+                modal.classList.add('show');
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('detailsModal');
+            modal.classList.remove('show');
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('detailsModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+
+    <!-- Hidden sections for modal content -->
+    {% for resume in resumes %}
+    <div id="skills{{ resume[0] }}" style="display: none;">
+        <h3>Skills</h3>
+        {{ resume[4]|safe }}
+    </div>
+    <div id="education{{ resume[0] }}" style="display: none;">
+        <h3>Education</h3>
+        {{ resume[5]|safe }}
+    </div>
+    <div id="experience{{ resume[0] }}" style="display: none;">
+        <h3>Experience</h3>
+        {{ resume[6]|safe }}
+    </div>
+    <div id="projects{{ resume[0] }}" style="display: none;">
+        <h3>Projects</h3>
+        {{ resume[7]|safe }}
+    </div>
+    <div id="academic{{ resume[0] }}" style="display: none;">
+        <h3>Academic Performance</h3>
+        <div class="data-section">
+            <strong>CGPA:</strong> {{ resume[10] if resume[10] else 'Not available' }}<br>
+            <strong>Academic Percentage:</strong> {{ resume[11] + '%' if resume[11] else 'Not available' }}<br>
+            <strong>Graduation Year:</strong> {{ resume[12] if resume[12] else 'Not available' }}<br>
+            <strong>ATS Score:</strong> {{ resume[8] }}%
+        </div>
+    </div>
+    {% endfor %}
+</body>
+</html>
