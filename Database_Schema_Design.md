@@ -2,7 +2,7 @@
 ## CVisionary - AI-Powered Resume Analysis System
 
 **Version:** 1.0  
-**Date:** January 2025  
+**Date:** August 2025  
 **Project:** CVisionary  
 **Document Type:** Database Schema Design
 
@@ -637,6 +637,6 @@ INSERT INTO candidate_profiles (
 ---
 
 **Document Version:** 1.0  
-**Last Updated:** January 2025  
+**Last Updated:** August 2025  
 **Approved By:** Development Team  
-**Next Review:** March 2025 
+**Next Review:** September 2025 

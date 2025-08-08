@@ -2,7 +2,7 @@
 ## CVisionary - AI-Powered Resume Analysis System
 
 **Version:** 1.0  
-**Date:** January 2025  
+**Date:** August 2025  
 **Project:** CVisionary  
 **Document Type:** Software Requirements Specification
 
