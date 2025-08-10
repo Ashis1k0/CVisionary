@@ -174,7 +174,7 @@
 
     // User session logic (injected by Flask)
     {% if session.get('user_logged_in') %}
-        document.getElementById('auth-area').innerHTML = `<span style='margin-right:10px;'>{{ session['username'] }}</span><a href='{{ url_for('user_logout') }}' class='auth-btn logout-btn'>Logout</a>`;
+        document.getElementById('auth-area').innerHTML = `<span class='username-display'>{{ session['username'] }}</span><a href='{{ url_for('user_logout') }}' class='logout-btn'><i class="fas fa-sign-out-alt"></i>Logout</a>`;
     {% endif %}
     </script>
 </body>

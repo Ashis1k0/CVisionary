@@ -271,12 +271,18 @@
             if (content) {
                 modalContent.innerHTML = content.innerHTML;
                 modal.classList.add('show');
+                // Scroll to top of modal content
+                modalContent.scrollTop = 0;
+                // Prevent body scrolling when modal is open
+                document.body.style.overflow = 'hidden';
             }
         }
 
         function closeModal() {
             const modal = document.getElementById('detailsModal');
             modal.classList.remove('show');
+            // Restore body scrolling
+            document.body.style.overflow = 'auto';
         }
 
         // Close modal when clicking outside
@@ -286,6 +292,13 @@
                 closeModal();
             }
         }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
     </script>
 
     <!-- Hidden sections for modal content -->

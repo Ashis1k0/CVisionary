@@ -364,6 +364,79 @@ body {
     display: none;
 }
 
+/* Logout Button Styling */
+.logout-btn {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.logout-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.logout-btn:hover {
+    background: linear-gradient(135deg, #ff5252, #d32f2f);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+}
+
+.logout-btn:hover::before {
+    left: 100%;
+}
+
+.logout-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.logout-btn i {
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.logout-btn:hover i {
+    transform: rotate(15deg);
+}
+
+/* Username Display Styling */
+.username-display {
+    color: #64748b;
+    font-weight: 500;
+    margin-right: 1rem;
+    padding: 0.5rem 1rem;
+    background: rgba(100, 116, 139, 0.1);
+    border-radius: 0.5rem;
+    border: 1px solid rgba(100, 116, 139, 0.2);
+    transition: all 0.3s ease;
+}
+
+.username-display:hover {
+    background: rgba(100, 116, 139, 0.15);
+    border-color: rgba(100, 116, 139, 0.3);
+}
+
+/* Responsive adjustments for logout button */
 @media (max-width: 768px) {
     .container {
         padding: 1rem;
@@ -403,5 +476,16 @@ body {
     .improvements-list li {
         padding: 0.75rem;
         font-size: 0.875rem;
+    }
+
+    .logout-btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+    
+    .username-display {
+        margin-right: 0.75rem;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
     }
 }
