@@ -138,8 +138,11 @@ engine = create_engine("mysql://username:password@localhost/resume_analysis")
 ### Step 5: Environment Configuration
 Create a `.env` file in the project root:
 ```env
-GOOGLE_API_KEY=your_gemini_api_key_here
-FLASK_SECRET_KEY=your_secret_key_here
+GEMINI_API_KEY=your_api_key
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=cvxpert_db
+DB_HOST=localhost
 ```
 
 ### Step 6: Initialize Database
