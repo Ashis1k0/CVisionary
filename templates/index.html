@@ -27,6 +27,7 @@
 
             <main>
                 <div class="upload-container">
+                    {% if session.get('user_logged_in') %}
                     <div class="upload-area" id="dropZone">
                         <div class="upload-content">
                             <div class="upload-icon">
@@ -42,6 +43,22 @@
                             <p class="supported-formats">Supported formats: PDF, DOCX</p>
                         </div>
                     </div>
+                    {% else %}
+                    <div class="login-prompt">
+                        <div class="upload-content">
+                            <div class="upload-icon">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <h3>Login Required</h3>
+                            <p>Please log in to upload and analyze your resume</p>
+                            <a href="{{ url_for('user_login') }}" class="upload-button">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Login Now
+                            </a>
+                            <p class="supported-formats">Don't have an account? <a href="{{ url_for('user_register') }}">Register here</a></p>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div class="results-container hidden" id="resultsSection">

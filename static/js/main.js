@@ -21,13 +21,26 @@ document.addEventListener('DOMContentLoaded', function() {
         dropZone.classList.remove('dragover');
         const files = e.dataTransfer.files;
         if (files.length) {
-            handleFileUpload(files[0]);
+            // Check if user is logged in before uploading
+            const authArea = document.getElementById('auth-area');
+            if (authArea && authArea.innerHTML.includes('username-display')) {
+                handleFileUpload(files[0]);
+            } else {
+                alert('Please log in to upload your resume');
+            }
         }
     });
 
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length) {
-            handleFileUpload(e.target.files[0]);
+            // Check if user is logged in before uploading
+            const authArea = document.getElementById('auth-area');
+            if (authArea && authArea.innerHTML.includes('username-display')) {
+                handleFileUpload(e.target.files[0]);
+            } else {
+                alert('Please log in to upload your resume');
+                e.target.value = ''; // Clear the file input
+            }
         }
     });
 
@@ -50,7 +63,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 resultsSection.classList.remove('hidden');
             } else {
-                throw new Error(data.error || 'Failed to process resume');
+                if (response.status === 401) {
+                    // User not logged in
+                    const loginConfirmed = confirm('Please log in to upload your resume. Would you like to go to the login page?');
+                    if (loginConfirmed) {
+                        window.location.href = '/user-login';
+                    }
+                } else {
+                    throw new Error(data.error || 'Failed to process resume');
+                }
             }
         } catch (error) {
             console.error('Error:', error);

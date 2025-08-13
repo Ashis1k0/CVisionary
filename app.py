@@ -668,6 +668,10 @@ def generate_resume_improvements(parsed_data):
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    # Check if user is logged in
+    if 'user_logged_in' not in session:
+        return jsonify({'error': 'Please log in to upload your resume'}), 401
+    
     if 'resume' not in request.files:
         return jsonify({'error': 'No file part'})
     file = request.files['resume']
@@ -983,6 +987,8 @@ def advanced_shortlist():
         min_percentage = request.form.get('min_percentage', 0)
         min_graduation_year = request.form.get('min_graduation_year', 0)
         skills_filter = request.form.get('skills_filter', '')
+        start_date = request.form.get('start_date', '')
+        end_date = request.form.get('end_date', '')
         
         # Build query with filters
         query = sqlalchemy_session.query(CandidateProfile)
@@ -1108,11 +1114,94 @@ def advanced_shortlist():
                                         'min_cgpa': min_cgpa,
                                         'min_percentage': min_percentage,
                                         'min_graduation_year': min_graduation_year,
-                                        'skills_filter': skills_filter
+                                        'skills_filter': skills_filter,
+                                        'start_date': start_date,
+                                        'end_date': end_date
                                     })
         
-        # Execute query
-        filtered_candidates = query.all()
+        # Apply date filters
+        if start_date or end_date:
+            print(f"🔍 Applying date filters: {start_date} to {end_date}")
+            # Get all candidates first for date filtering
+            all_candidates = query.all()
+            print(f"📊 Total candidates before date filtering: {len(all_candidates)}")
+            date_filtered_candidates = []
+            
+            for candidate in all_candidates:
+                print(f"🔍 Checking candidate: {candidate.name}, uploaded_at: '{candidate.uploaded_at}'")
+                if candidate.uploaded_at:
+                    try:
+                        # Parse the uploaded_at date (with time format like "2025-08-12 22:28:14")
+                        # Try different date formats including datetime formats
+                        upload_date = None
+                        date_formats = [
+                            '%Y-%m-%d %H:%M:%S',  # 2025-08-12 22:28:14
+                            '%Y-%m-%d %H:%M',     # 2025-08-12 22:28
+                            '%Y-%m-%d',           # 2025-08-12
+                            '%d-%m-%Y %H:%M:%S',  # 12-08-2025 22:28:14
+                            '%d-%m-%Y',           # 12-08-2025
+                            '%d/%m/%Y',           # 12/08/2025
+                            '%Y/%m/%d'            # 2025/08/12
+                        ]
+                        for date_format in date_formats:
+                            try:
+                                parsed_datetime = datetime.strptime(candidate.uploaded_at, date_format)
+                                upload_date = parsed_datetime.date()  # Extract just the date part
+                                print(f"✅ Parsed date: {upload_date} using format: {date_format}")
+                                break
+                            except ValueError:
+                                continue
+                        
+                        if upload_date is None:
+                            # If we can't parse the date, skip this candidate
+                            print(f"❌ Could not parse date: {candidate.uploaded_at}")
+                            continue
+                        
+                        # Check start date filter
+                        if start_date:
+                            start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+                            print(f"📅 Comparing: {upload_date} >= {start_date_obj}")
+                            if upload_date < start_date_obj:
+                                print(f"❌ Failed start date filter: {upload_date} < {start_date_obj}")
+                                continue
+                        
+                        # Check end date filter
+                        if end_date:
+                            end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
+                            print(f"📅 Comparing: {upload_date} <= {end_date_obj}")
+                            if upload_date > end_date_obj:
+                                print(f"❌ Failed end date filter: {upload_date} > {end_date_obj}")
+                                continue
+                        
+                        print(f"✅ Candidate {candidate.name} passed date filters")
+                        date_filtered_candidates.append(candidate)
+                    except ValueError:
+                        # If date parsing fails, include the candidate
+                        date_filtered_candidates.append(candidate)
+                else:
+                    # If no upload date, include the candidate
+                    date_filtered_candidates.append(candidate)
+            
+            # Use the date filtered candidates directly
+            print(f"📊 Candidates after date filtering: {len(date_filtered_candidates)}")
+            if date_filtered_candidates:
+                filtered_candidates = date_filtered_candidates
+            else:
+                # No candidates match date criteria
+                return render_template('advanced_shortlist.html', 
+                                    candidates=[],
+                                    filters={
+                                        'min_ats_score': min_ats_score,
+                                        'min_cgpa': min_cgpa,
+                                        'min_percentage': min_percentage,
+                                        'min_graduation_year': min_graduation_year,
+                                        'skills_filter': skills_filter,
+                                        'start_date': start_date,
+                                        'end_date': end_date
+                                    })
+        else:
+            # Execute query if no date filters
+            filtered_candidates = query.all()
         
         # Format candidates for template
         formatted_candidates = []
@@ -1146,7 +1235,9 @@ def advanced_shortlist():
             'min_cgpa': min_cgpa,
             'min_percentage': min_percentage,
             'min_graduation_year': min_graduation_year,
-            'skills_filter': skills_filter
+            'skills_filter': skills_filter,
+            'start_date': start_date,
+            'end_date': end_date
         }
         
         return render_template('advanced_shortlist.html', 
@@ -1156,7 +1247,9 @@ def advanced_shortlist():
                                 'min_cgpa': min_cgpa,
                                 'min_percentage': min_percentage,
                                 'min_graduation_year': min_graduation_year,
-                                'skills_filter': skills_filter
+                                'skills_filter': skills_filter,
+                                'start_date': start_date,
+                                'end_date': end_date
                             })
     
     # GET request - show the filter form
@@ -1176,6 +1269,8 @@ def export_advanced_shortlist():
     min_percentage = filters.get('min_percentage', 0)
     min_graduation_year = filters.get('min_graduation_year', 0)
     skills_filter = filters.get('skills_filter', '')
+    start_date = filters.get('start_date', '')
+    end_date = filters.get('end_date', '')
     
     # Build query with filters (same logic as advanced_shortlist)
     query = sqlalchemy_session.query(CandidateProfile)
@@ -1246,8 +1341,61 @@ def export_advanced_shortlist():
         for skill in skill_list:
             query = query.filter(CandidateProfile.skills.ilike(f'%{skill}%'))
     
-    # Execute query
-    filtered_candidates = query.all()
+    # Apply date filters
+    if start_date or end_date:
+        # Get all candidates first for date filtering
+        all_candidates = query.all()
+        filtered_candidates = []
+        
+        for candidate in all_candidates:
+            if candidate.uploaded_at:
+                try:
+                    # Parse the uploaded_at date (with time format like "2025-08-12 22:28:14")
+                    # Try different date formats including datetime formats
+                    upload_date = None
+                    date_formats = [
+                        '%Y-%m-%d %H:%M:%S',  # 2025-08-12 22:28:14
+                        '%Y-%m-%d %H:%M',     # 2025-08-12 22:28
+                        '%Y-%m-%d',           # 2025-08-12
+                        '%d-%m-%Y %H:%M:%S',  # 12-08-2025 22:28:14
+                        '%d-%m-%Y',           # 12-08-2025
+                        '%d/%m/%Y',           # 12/08/2025
+                        '%Y/%m/%d'            # 2025/08/12
+                    ]
+                    for date_format in date_formats:
+                        try:
+                            parsed_datetime = datetime.strptime(candidate.uploaded_at, date_format)
+                            upload_date = parsed_datetime.date()  # Extract just the date part
+                            break
+                        except ValueError:
+                            continue
+                    
+                    if upload_date is None:
+                        # If we can't parse the date, skip this candidate
+                        continue
+                    
+                    # Check start date filter
+                    if start_date:
+                        start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+                        if upload_date < start_date_obj:
+                            continue
+                    
+                    # Check end date filter
+                    if end_date:
+                        end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
+                        if upload_date > end_date_obj:
+                            continue
+                    
+                    filtered_candidates.append(candidate)
+                except ValueError:
+                    # If date parsing fails, include the candidate
+                    filtered_candidates.append(candidate)
+            else:
+                # If no upload date, include the candidate
+                filtered_candidates.append(candidate)
+    else:
+        # Execute query
+        filtered_candidates = query.all()
     
     # Create CSV data
     output = StringIO()
@@ -1293,6 +1441,10 @@ def export_advanced_shortlist():
         filter_parts.append(f"YEAR{min_graduation_year}")
     if skills_filter:
         filter_parts.append("SKILLS")
+    if start_date:
+        filter_parts.append(f"FROM{start_date}")
+    if end_date:
+        filter_parts.append(f"TO{end_date}")
     
     filename = f"advanced_shortlist_{'_'.join(filter_parts)}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
     

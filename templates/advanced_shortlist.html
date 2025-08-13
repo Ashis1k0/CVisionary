@@ -339,6 +339,20 @@
                         <input type="text" id="skills_filter" name="skills_filter" 
                                value="{{ filters.get('skills_filter', '') }}" placeholder="e.g., Python, Java, SQL">
                     </div>
+                    
+                    <div class="filter-group">
+                        <label for="start_date">Upload Date From</label>
+                        <input type="date" id="start_date" name="start_date" 
+                               value="{{ filters.get('start_date', '') }}" 
+                               max="{{ filters.get('end_date', '') if filters.get('end_date') else '' }}">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="end_date">Upload Date To</label>
+                        <input type="date" id="end_date" name="end_date" 
+                               value="{{ filters.get('end_date', '') }}"
+                               min="{{ filters.get('start_date', '') if filters.get('start_date') else '' }}">
+                    </div>
                 </div>
                 
                 <div class="filter-buttons">
@@ -441,5 +455,29 @@
         </div>
         {% endif %}
     </div>
+    
+    <script>
+        // Date validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const startDate = document.getElementById('start_date');
+            const endDate = document.getElementById('end_date');
+            
+            if (startDate && endDate) {
+                startDate.addEventListener('change', function() {
+                    if (this.value && endDate.value && this.value > endDate.value) {
+                        alert('Start date cannot be after end date');
+                        this.value = '';
+                    }
+                });
+                
+                endDate.addEventListener('change', function() {
+                    if (this.value && startDate.value && this.value < startDate.value) {
+                        alert('End date cannot be before start date');
+                        this.value = '';
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html> 
