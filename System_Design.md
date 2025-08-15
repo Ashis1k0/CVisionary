@@ -977,7 +977,7 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key'
-    DATABASE_URL = os.environ.get('DATABASE_URL') or 'mysql://root:root10@localhost/resume_analysis'
+    DATABASE_URL = os.environ.get('DATABASE_URL') or 'mysql://YourUsername:password@localhost/resume_analysis'
     GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER') or 'uploads'
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))

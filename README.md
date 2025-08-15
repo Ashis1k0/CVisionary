@@ -363,6 +363,13 @@ python app.py
 # Test admin panel access
 # Test candidate filtering
 ```
+## 👥 Team
+
+| Name | GitHub |
+|------|--------|
+| Ashis Moharana | [@Ashis1k0](https://github.com/Ashis1k0) |
+| Ashirbad Mohanty | [@ASHIRBAD07](https://github.com/ASHIRBAD07) |
+| Aryan Devdarshi | [@aryandevdarshi-debug](https://github.com/aryandevdarshi-debug) |
 
 ## 🤝 Contributing
 
