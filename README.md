@@ -141,7 +141,7 @@ Create a `.env` file in the project root:
 GEMINI_API_KEY=your_api_key
 DB_USER=root
 DB_PASSWORD=your_password
-DB_NAME=cvxpert_db
+DB_NAME=cvisionary_db
 DB_HOST=localhost
 ```
 
