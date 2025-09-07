@@ -187,6 +187,8 @@ def extract_text_from_docx(docx_path):
 
 # Image parsing removed - only PDF and DOCX files are supported
 
+#def extract_text_from_image(image_path):
+#    return pytesseract.image_to_string(Image.open(image_path)).strip()
 
 def parse_resume_with_gemini(file_path):
     file_ext = os.path.splitext(file_path)[1].lower()
