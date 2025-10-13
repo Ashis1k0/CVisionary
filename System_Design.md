@@ -339,6 +339,8 @@ uploads/
    ↓
 7. Recommendation Generation
 ```
+<img width="2334" height="4102" alt="diagram-export-10-12-2025-11_13_20-PM" src="https://github.com/user-attachments/assets/d32c67af-e608-43c2-b6bf-c908437779e8" />
+
 
 ---
 
