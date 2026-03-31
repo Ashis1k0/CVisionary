@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice AI Mock Interview - CVisionary</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f7fa;
+        }
+        .page-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .card-interview {
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1);
+            border: none;
+        }
+        .question-box {
+            min-height: 90px;
+            background: #f1f5f9;
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+        }
+        .mic-btn {
+            width: 64px;
+            height: 64px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.35);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+        }
+        .mic-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(37, 99, 235, 0.45);
+        }
+        .mic-btn.recording {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 14px 30px rgba(239, 68, 68, 0.55);
+        }
+        .badge-status {
+            font-size: 0.8rem;
+            border-radius: 999px;
+        }
+        .transcript-box {
+            min-height: 100px;
+        }
+        .score-pill {
+            border-radius: 999px;
+            padding: 0.35rem 0.9rem;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+<div class="page-wrapper">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-semibold" href="{{ url_for('index') }}">CVisionary</a>
+            <div class="ms-auto">
+                <a href="{{ url_for('user_logout') }}" class="btn btn-outline-secondary btn-sm">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow-1 py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card card-interview">
+                        <div class="card-body p-4 p-md-5">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h4 class="mb-1">Voice AI Mock Interview</h4>
+                                    <p class="text-muted mb-0">Practice your interviews with real-time AI feedback.</p>
+                                </div>
+                                <span id="sessionStatus" class="badge bg-secondary badge-status">
+                                    Not started
+                                </span>
+                            </div>
+
+                            <form id="configForm" class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Job Role</label>
+                                    <input type="text" class="form-control" id="jobRole" placeholder="e.g. Backend Developer" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Difficulty</label>
+                                    <select id="difficulty" class="form-select">
+                                        <option>Easy</option>
+                                        <option selected>Medium</option>
+                                        <option>Hard</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Experience (years)</label>
+                                    <input type="number" min="0" class="form-control" id="experience" placeholder="e.g. 2">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Skills (comma separated)</label>
+                                    <input type="text" class="form-control" id="skills"
+                                           placeholder="Python, Flask, SQL, System Design">
+                                </div>
+                            </form>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="btn-group" role="group">
+                                    <button id="startBtn" class="btn btn-primary">
+                                        Start Interview
+                                    </button>
+                                    <button id="endBtn" class="btn btn-danger" type="button" disabled>
+                                        End Interview
+                                    </button>
+                                </div>
+                                <div class="text-end">
+                                    <div class="small text-muted">
+                                        Question <span id="questionIndex">0</span>/<span id="questionTotal">0</span>
+                                    </div>
+                                    <div class="mt-1">
+                                        <span class="badge bg-success-subtle text-success score-pill">
+                                            Session Score: <span id="sessionScore">0</span>/10
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="question-box mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-semibold text-secondary">Question</span>
+                                    <button id="repeatBtn" class="btn btn-link btn-sm p-0 text-decoration-none" type="button">
+                                        🔊 Repeat
+                                    </button>
+                                </div>
+                                <p id="questionText" class="mb-0 text-dark">
+                                    Click "Start Interview" to begin. Questions will appear here.
+                                </p>
+                            </div>
+
+                            <div class="d-flex flex-column align-items-center mb-3">
+                                <button id="micBtn" class="mic-btn mb-2" type="button" disabled>
+                                    🎤
+                                </button>
+                                <div class="small text-muted" id="micStatus">Microphone idle</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Your Answer (transcript)</label>
+                                <textarea id="transcript" class="form-control transcript-box" rows="4"
+                                          placeholder="Your spoken answer will appear here. You can also edit manually before submitting."></textarea>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <button id="submitAnswerBtn" class="btn btn-outline-primary" type="button" disabled>
+                                    Submit Answer
+                                </button>
+                                <button id="nextBtn" class="btn btn-secondary" type="button" disabled>
+                                    Next Question
+                                </button>
+                            </div>
+
+                            <div class="border rounded-3 p-3 bg-light">
+                                <h6 class="fw-semibold mb-2">AI Feedback</h6>
+                                <p class="mb-1 small text-muted" id="feedbackText">Feedback will appear after you submit an answer.</p>
+                                <p class="mb-0 small text-muted" id="tipsText"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    let recognition = null;
+    let currentSessionId = null;
+    let currentQuestionIndex = 0;
+    let totalQuestions = 0;
+    let cumulativeScore = 0;
+    let lastQuestionText = "";
+    let isRecording = false;
+    let recognitionRunning = false;
+    let lastSpokenQuestionIndex = -1;
+
+    function stopRecognitionIfRunning() {
+        if (!recognition) return;
+        if (isRecording) {
+            try {
+                recognition.stop();
+            } catch (e) {
+                // ignore
+            }
+            isRecording = false;
+        }
+    }
+
+    function speak(text) {
+        if (!window.speechSynthesis) return;
+        stopRecognitionIfRunning();
+        const speech = new SpeechSynthesisUtterance(text);
+        speech.lang = "en-US";
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(speech);
+    }
+
+    function initRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            document.getElementById("micStatus").textContent =
+                "Speech recognition not supported in this browser.";
+            return null;
+        }
+        const rec = new SpeechRecognition();
+        rec.lang = "en-US";
+        rec.interimResults = true;
+        rec.continuous = true;
+        return rec;
+    }
+
+    function setSessionStatus(text, type) {
+        const el = document.getElementById("sessionStatus");
+        el.textContent = text;
+        el.className = "badge badge-status " + (type === "running"
+            ? "bg-success"
+            : type === "finished"
+                ? "bg-primary"
+                : "bg-secondary");
+    }
+
+    async function startInterview() {
+        const jobRole = document.getElementById("jobRole").value.trim();
+        if (!jobRole) {
+            alert("Please enter a job role.");
+            return;
+        }
+        const payload = {
+            job_role: jobRole,
+            difficulty: document.getElementById("difficulty").value,
+            experience: document.getElementById("experience").value,
+            skills: document.getElementById("skills").value
+        };
+        try {
+            const res = await fetch("/interview/voice/start", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || "Failed to start interview");
+            }
+            currentSessionId = data.session_id;
+            currentQuestionIndex = data.question_index;
+            totalQuestions = data.total_questions;
+            cumulativeScore = 0;
+            lastQuestionText = data.question;
+            lastSpokenQuestionIndex = -1;
+
+            document.getElementById("questionText").textContent = data.question;
+            document.getElementById("questionIndex").textContent = (currentQuestionIndex + 1).toString();
+            document.getElementById("questionTotal").textContent = totalQuestions.toString();
+            document.getElementById("sessionScore").textContent = "0";
+            document.getElementById("transcript").value = "";
+            document.getElementById("feedbackText").textContent = "Answer the question to get AI feedback.";
+            document.getElementById("tipsText").textContent = "";
+
+            document.getElementById("micBtn").disabled = false;
+            document.getElementById("submitAnswerBtn").disabled = false;
+            document.getElementById("nextBtn").disabled = true;
+            document.getElementById("endBtn").disabled = false;
+
+            setSessionStatus("In progress", "running");
+            if (currentQuestionIndex !== lastSpokenQuestionIndex) {
+                speak("Starting your interview. Here is your first question. " + data.question);
+                lastSpokenQuestionIndex = currentQuestionIndex;
+            }
+        } catch (err) {
+            console.error(err);
+            alert(err.message || "Could not start interview.");
+        }
+    }
+
+    async function fetchNextQuestion() {
+        if (!currentSessionId) return;
+        try {
+            const res = await fetch("/interview/voice/get_question", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ session_id: currentSessionId })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || "Failed to get next question");
+            }
+            if (data.finished) {
+                setSessionStatus("Completed", "finished");
+                document.getElementById("micBtn").disabled = true;
+                document.getElementById("submitAnswerBtn").disabled = true;
+                document.getElementById("nextBtn").disabled = true;
+                document.getElementById("endBtn").disabled = true;
+                return;
+            }
+            currentQuestionIndex = data.question_index;
+            lastQuestionText = data.question;
+            document.getElementById("questionText").textContent = data.question;
+            document.getElementById("questionIndex").textContent = (currentQuestionIndex + 1).toString();
+            document.getElementById("transcript").value = "";
+            document.getElementById("feedbackText").textContent = "Answer the question to get AI feedback.";
+            document.getElementById("tipsText").textContent = "";
+            document.getElementById("nextBtn").disabled = true;
+
+            if (currentQuestionIndex !== lastSpokenQuestionIndex) {
+                speak(data.question);
+                lastSpokenQuestionIndex = currentQuestionIndex;
+            }
+        } catch (err) {
+            console.error(err);
+            alert(err.message || "Unable to fetch next question.");
+        }
+    }
+
+    async function submitAnswer() {
+        if (!currentSessionId) return;
+        const answer = document.getElementById("transcript").value.trim();
+        if (!answer) {
+            alert("Please record or type an answer first.");
+            return;
+        }
+        try {
+            const res = await fetch("/interview/voice/answer", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    session_id: currentSessionId,
+                    answer: answer
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || "Failed to submit answer");
+            }
+
+            cumulativeScore += data.score || 0;
+            const avgScore = Math.round(cumulativeScore / (currentQuestionIndex + 1));
+            document.getElementById("sessionScore").textContent = avgScore.toString();
+            document.getElementById("feedbackText").textContent = data.feedback || "No feedback received.";
+            document.getElementById("tipsText").textContent = data.tips || "";
+            document.getElementById("nextBtn").disabled = data.finished;
+
+            const spokenFeedback =
+                "Your score for this answer is " +
+                (data.score || 0) +
+                " out of 10. " +
+                (data.feedback || "");
+            speak(spokenFeedback);
+
+            if (data.finished) {
+                setSessionStatus("Completed", "finished");
+                document.getElementById("micBtn").disabled = true;
+                document.getElementById("submitAnswerBtn").disabled = true;
+                document.getElementById("nextBtn").disabled = true;
+                document.getElementById("endBtn").disabled = true;
+                stopRecognitionIfRunning();
+                if (data.redirect_url) {
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url;
+                    }, 2500);
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            alert(err.message || "Could not submit answer.");
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        recognition = initRecognition();
+
+        const startBtn = document.getElementById("startBtn");
+        const micBtn = document.getElementById("micBtn");
+        const submitAnswerBtn = document.getElementById("submitAnswerBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const micStatus = document.getElementById("micStatus");
+        const endBtn = document.getElementById("endBtn");
+
+        startBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            startInterview();
+        });
+
+        document.getElementById("repeatBtn").addEventListener("click", () => {
+            if (lastQuestionText) speak(lastQuestionText);
+        });
+
+        if (recognition) {
+            micBtn.addEventListener("click", () => {
+                if (!recognition) return;
+                if (!isRecording) {
+                    if (recognitionRunning) return;
+                    isRecording = true;
+                    micBtn.classList.add("recording");
+                    micStatus.textContent = "Listening... please speak.";
+                    recognition.start();
+                } else {
+                    isRecording = false;
+                    recognition.stop();
+                    micBtn.classList.remove("recording");
+                    micStatus.textContent = "Microphone idle";
+                }
+            });
+
+            const transcriptBox = document.getElementById("transcript");
+
+            recognition.onresult = function(event) {
+                let finalText = "";
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        finalText += event.results[i][0].transcript + " ";
+                    }
+                }
+                if (finalText) {
+                    transcriptBox.value = (transcriptBox.value + finalText).trim();
+                }
+            };
+
+            recognition.onstart = () => {
+                recognitionRunning = true;
+            };
+
+            recognition.onerror = () => {
+                isRecording = false;
+                micBtn.classList.remove("recording");
+                micStatus.textContent = "Microphone error. Try again.";
+            };
+
+            recognition.onend = () => {
+                recognitionRunning = false;
+                if (isRecording) {
+                    recognition.start();
+                } else {
+                    micBtn.classList.remove("recording");
+                    micStatus.textContent = "Microphone idle";
+                }
+            };
+        }
+
+        submitAnswerBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            submitAnswer();
+        });
+
+        nextBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            fetchNextQuestion();
+        });
+
+        endBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            if (!currentSessionId) return;
+            stopRecognitionIfRunning();
+            fetch("/interview/voice/answer", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    session_id: currentSessionId,
+                    force_end: true
+                })
+            })
+                .then((r) => r.json())
+                .then((d) => {
+                    if (d.redirect_url) {
+                        window.location.href = d.redirect_url;
+                    }
+                })
+                .catch((err) => {
+                    console.error(err);
+                    alert("Failed to end interview.");
+                });
+        });
+    });
+</script>
+</body>
+</html>
+

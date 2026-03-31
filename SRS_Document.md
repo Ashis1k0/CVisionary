@@ -529,3 +529,37 @@ The system follows a three-tier architecture:
 **Last Updated:** August 2025  
 **Approved By:** Development Team  
 **Next Review:** September 2025 
+
+---
+
+## 13. Change Addendum (March 2026)
+
+### 13.1 New Functional Requirements
+
+#### Recruiter Module
+- **FR-10.1**: System shall allow recruiter registration with name, email, password, and company.
+- **FR-10.2**: System shall allow recruiter login/logout with session key `recruiter_id`.
+- **FR-10.3**: System shall provide recruiter dashboard with navigation to New Job, My Jobs, and Applications.
+- **FR-10.4**: System shall allow recruiters to create, edit, and delete job posts.
+- **FR-10.5**: System shall allow recruiters to view applications for their own jobs only.
+
+#### Job Posting and Applications
+- **FR-11.1**: System shall store job posts with role, company, location, skills, experience, and salary.
+- **FR-11.2**: System shall allow candidates to apply to a job once (duplicate prevention).
+- **FR-11.3**: System shall support both redirect-based and AJAX-based job applications.
+- **FR-11.4**: System shall provide candidate view for tracking all applied jobs.
+
+#### Jobs Discovery and Matching
+- **FR-12.1**: System shall provide a jobs board to search jobs by role/skills/company.
+- **FR-12.2**: System shall suggest jobs after resume upload based on skill overlap.
+- **FR-12.3**: System shall compute match score as count of matching skills and sort descending.
+
+### 13.2 Updated Use Cases
+- **UC-6 Candidate Job Discovery**: Candidate opens Jobs Board, searches by role, applies, and tracks applications.
+- **UC-7 Recruiter Job Management**: Recruiter logs in, posts job, edits/deletes jobs, and reviews applications.
+
+### 13.3 Data Requirements Update
+- New data domains:
+  - recruiter accounts
+  - job post metadata
+  - candidate job applications and status history

@@ -17,8 +17,8 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import csv
 from io import StringIO
 import hashlib
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from datetime import datetime
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
@@ -78,6 +78,74 @@ class CandidateProfile(Base):
     def __repr__(self):
         return f"<CandidateProfile(name={self.name}, email={self.email})>"
 
+
+class InterviewSession(Base):
+    __tablename__ = 'interview_sessions'
+
+    id = Column(Integer, primary_key=True)
+    candidate_id = Column(Integer, nullable=False)
+    job_role = Column(String(255), nullable=False)
+    difficulty = Column(String(50), nullable=True)
+    current_question = Column(Integer, default=0)
+    total_score = Column(Integer, default=0)
+    feedback = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.now)
+
+    def __repr__(self):
+        return f"<InterviewSession(id={self.id}, candidate_id={self.candidate_id}, job_role={self.job_role})>"
+
+
+class Recruiter(Base):
+    __tablename__ = 'recruiters'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
+    password = Column(String(255), nullable=False)
+    company = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=datetime.now)
+
+    jobs = relationship("JobPost", back_populates="recruiter")
+
+    def __repr__(self):
+        return f"<Recruiter(id={self.id}, email={self.email})>"
+
+
+class JobPost(Base):
+    __tablename__ = 'job_posts'
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String(255), nullable=False)
+    company = Column(String(255), nullable=False)
+    location = Column(String(255), nullable=True)
+    description = Column(Text, nullable=True)
+    skills = Column(Text, nullable=True)  # comma-separated skills
+    experience = Column(String(100), nullable=True)
+    salary = Column(String(100), nullable=True)
+    recruiter_id = Column(Integer, ForeignKey('recruiters.id'), nullable=False)
+    created_at = Column(DateTime, default=datetime.now)
+
+    recruiter = relationship("Recruiter", back_populates="jobs")
+
+    def __repr__(self):
+        return f"<JobPost(id={self.id}, title={self.title})>"
+
+
+class JobApplication(Base):
+    __tablename__ = 'job_applications'
+
+    id = Column(Integer, primary_key=True)
+    job_id = Column(Integer, ForeignKey('job_posts.id'), nullable=False)
+    candidate_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    status = Column(String(50), default="Applied")
+    created_at = Column(DateTime, default=datetime.now)
+
+    job = relationship("JobPost")
+    candidate = relationship("User")
+
+    def __repr__(self):
+        return f"<JobApplication(id={self.id}, job_id={self.job_id}, candidate_id={self.candidate_id})>"
+
 # Set up the database connection
 engine = create_engine("mysql://root:root10@localhost/resume_analysis")
 
@@ -103,6 +171,13 @@ def initialize_admin():
 # Call the initialization function
 initialize_admin()
 
+# Seed demo recruiter/jobs (only if jobs table empty)
+try:
+    from seed_data import seed_if_needed
+    seed_if_needed(sqlalchemy_session)
+except Exception as e:
+    print(f"Seed data skipped: {str(e)}")
+
 # Initialize Flask App
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -114,10 +189,30 @@ app.secret_key = '20233952'  # For session management
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
+# Register blueprints
+try:
+    from routes.interview_voice_routes import interview_voice_bp
+    app.register_blueprint(interview_voice_bp)
+except Exception:
+    # Blueprint will be available once the module is created
+    pass
+
+try:
+    from routes.recruiter_routes import recruiter_bp
+    app.register_blueprint(recruiter_bp)
+except Exception:
+    pass
+
+try:
+    from routes.job_routes import jobs_bp
+    app.register_blueprint(jobs_bp)
+except Exception:
+    pass
+
 # Initialize Google Gemini API
 load_dotenv()
 genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
-model = genai.GenerativeModel('gemini-2.0-flash')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 # MySQL Database Configuration
 db = mysql.connector.connect(
@@ -705,12 +800,22 @@ def upload_file():
         except ValueError as e:
             return jsonify({'error': f'Failed to store resume data: {str(e)}'})
 
-        # Return success response with parsed data, ATS score, and improvements
+        # Suggested jobs (skill match)
+        suggested_jobs = []
+        try:
+            from services.job_matcher import match_jobs
+            candidate_skills = parsed_data.get('skills', []) if isinstance(parsed_data.get('skills', []), list) else []
+            suggested_jobs = match_jobs(sqlalchemy_session, candidate_skills)
+        except Exception as e:
+            print(f"Job matching error: {str(e)}")
+
+        # Return success response with parsed data, ATS score, improvements, and suggested jobs
         return jsonify({
             'success': True,
             'parsed_data': parsed_data,
             'ats_score': ats_score,
-            'improvements': improvements
+            'improvements': improvements,
+            'suggested_jobs': suggested_jobs
         })
 
     except Exception as e:
@@ -1559,6 +1664,39 @@ def resume_statistics():
                          region_stats=region_stats,
                          degree_stats=degree_stats,
                          skill_stats=skill_stats)
+
+@app.route('/admin/interviews')
+def admin_interviews():
+    if 'admin_logged_in' not in session:
+        flash('Please log in first', 'error')
+        return redirect(url_for('admin_login'))
+
+    # Import here to avoid circular imports
+    from routes.interview_voice_routes import get_interview_candidate_map
+
+    sessions = sqlalchemy_session.query(InterviewSession).order_by(
+        InterviewSession.created_at.desc()
+    ).all()
+
+    candidate_map = get_interview_candidate_map(sqlalchemy_session, [s.candidate_id for s in sessions])
+
+    interviews = []
+    for s in sessions:
+        candidate_info = candidate_map.get(s.candidate_id, {})
+        interviews.append(
+            {
+                'id': s.id,
+                'candidate_username': candidate_info.get('username', 'Unknown'),
+                'candidate_email': candidate_info.get('email', 'Unknown'),
+                'job_role': s.job_role,
+                'difficulty': s.difficulty or 'N/A',
+                'total_score': s.total_score,
+                'created_at': s.created_at,
+            }
+        )
+
+    return render_template('admin_interviews.html', interviews=interviews)
+
 
 @app.route('/generate-report', methods=['POST'])
 def generate_report():

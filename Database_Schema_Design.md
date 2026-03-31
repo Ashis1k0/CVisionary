@@ -640,3 +640,73 @@ INSERT INTO candidate_profiles (
 **Last Updated:** August 2025  
 **Approved By:** Development Team  
 **Next Review:** September 2025 
+
+---
+
+## 13. Schema Addendum (March 2026)
+
+### 13.1 New Tables
+
+#### recruiters
+```sql
+CREATE TABLE recruiters (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    company VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### job_posts
+```sql
+CREATE TABLE job_posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    company VARCHAR(255) NOT NULL,
+    location VARCHAR(255),
+    description TEXT,
+    skills TEXT,
+    experience VARCHAR(100),
+    salary VARCHAR(100),
+    recruiter_id INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (recruiter_id) REFERENCES recruiters(id)
+);
+```
+
+#### job_applications
+```sql
+CREATE TABLE job_applications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    job_id INT NOT NULL,
+    candidate_id INT NOT NULL,
+    status VARCHAR(50) DEFAULT 'Applied',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (job_id) REFERENCES job_posts(id),
+    FOREIGN KEY (candidate_id) REFERENCES users(id)
+);
+```
+
+### 13.2 Existing Newer Table
+
+#### interview_sessions
+```sql
+CREATE TABLE interview_sessions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    candidate_id INT NOT NULL,
+    job_role VARCHAR(255) NOT NULL,
+    difficulty VARCHAR(50),
+    current_question INT DEFAULT 0,
+    total_score INT DEFAULT 0,
+    feedback TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 13.3 Relationship Summary (Updated)
+- `recruiters (1) -> (N) job_posts`
+- `users (1) -> (N) job_applications`
+- `job_posts (1) -> (N) job_applications`
+- `users (1) -> (N) interview_sessions` (logical by `candidate_id`)

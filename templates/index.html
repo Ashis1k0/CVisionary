@@ -14,12 +14,31 @@
         <div class="container">
             <header class="hero-section">
                 <div class="hero-content">
+                    <div style="position: absolute; top: 20px; left: 40px;">
+                        <a href="{{ url_for('jobs.jobs_board') }}" class="auth-btn login-btn" style="display:inline-flex; align-items:center; gap:8px;">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Apply Jobs</span>
+                        </a>
+                        {% if session.get('user_logged_in') %}
+                        <a href="{{ url_for('jobs.my_applied_jobs') }}" class="auth-btn login-btn" style="display:inline-flex; align-items:center; gap:8px; margin-left:8px;">
+                            <i class="fas fa-list-check"></i>
+                            <span>My Applied Jobs</span>
+                        </a>
+                        {% endif %}
+                    </div>
                     <h1>AI Resume Analyzer</h1>
                     <p>Transform your resume into a powerful tool for your career journey</p>
                     <div class="auth-links" style="position: absolute; top: 20px; right: 40px;">
                         <div id="auth-area">
-                            <!-- Dynamic login/logout area -->
-                            <a href="{{ url_for('user_login') }}" class="auth-btn login-btn">Login</a>
+                            {% if session.get('user_logged_in') %}
+                                <span class="username-display">{{ session['username'] }}</span>
+                                <a href="{{ url_for('user_logout') }}" class="logout-btn">
+                                    <i class="fas fa-sign-out-alt"></i>Logout
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('user_login') }}" class="auth-btn login-btn">Login</a>
+                                <a href="{{ url_for('recruiter.recruiter_login') }}" class="auth-btn login-btn" style="margin-left:8px;">Recruiter Login</a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -41,6 +60,12 @@
                             </label>
                             <input type="file" id="fileInput" accept=".pdf,.docx" hidden>
                             <p class="supported-formats">Supported formats: PDF, DOCX</p>
+                            <div class="mt-4">
+                                <a href="{{ url_for('interview_voice.voice_interview_page') }}" class="upload-button" style="display:inline-flex;align-items:center;gap:0.5rem;">
+                                    <span>🎤</span>
+                                    <span>Voice AI Interview</span>
+                                </a>
+                            </div>
                         </div>
                     </div>
                     {% else %}
@@ -131,6 +156,11 @@
                             <h2><i class="fas fa-bullseye"></i> Job Recommendations</h2>
                             <div id="recommendationsList" class="recommendations-list recommendations-grid"></div>
                         </div>
+
+                        <div class="recommendations-section hidden" id="suggestedJobsSection">
+                            <h2><i class="fas fa-briefcase"></i> Suggested Jobs</h2>
+                            <div id="suggestedJobsList" class="recommendations-list recommendations-grid"></div>
+                        </div>
                     </div>
                 </div>
             </main>
@@ -189,10 +219,6 @@
 
     document.getElementById('downloadReportBtn').addEventListener('click', downloadReport);
 
-    // User session logic (injected by Flask)
-    {% if session.get('user_logged_in') %}
-        document.getElementById('auth-area').innerHTML = `<span class='username-display'>{{ session['username'] }}</span><a href='{{ url_for('user_logout') }}' class='logout-btn'><i class="fas fa-sign-out-alt"></i>Logout</a>`;
-    {% endif %}
     </script>
 </body>
 </html>

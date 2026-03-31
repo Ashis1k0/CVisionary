@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Applications - Recruiter - CVisionary</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-semibold" href="{{ url_for('recruiter.recruiter_dashboard') }}">Recruiter</a>
+        <div class="ms-auto d-flex gap-2">
+            <a class="btn btn-outline-danger btn-sm" href="{{ url_for('recruiter.recruiter_logout') }}">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('recruiter.recruiter_dashboard') }}">Overview</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('recruiter.recruiter_job_create') }}">New Job</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('recruiter.recruiter_jobs') }}">My Jobs</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active" href="{{ url_for('recruiter.recruiter_applications') }}">Applications</a>
+        </li>
+    </ul>
+
+    <h4 class="mb-3">Applications</h4>
+
+    {% if applications %}
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Email</th>
+                    <th>Job</th>
+                    <th>ATS Score</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for a in applications %}
+                    <tr>
+                        <td class="fw-semibold">{{ a.candidate_username }}</td>
+                        <td>{{ a.candidate_email }}</td>
+                        <td>{{ a.job_title }} <span class="text-muted small">({{ a.job_company }})</span></td>
+                        <td>
+                            {% if a.ats_score is not none %}
+                                <span class="badge bg-primary">{{ a.ats_score }}%</span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ a.status }}</td>
+                        <td class="text-muted small">{{ a.created_at }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">No applications yet.</div>
+    {% endif %}
+</div>
+</body>
+</html>
+

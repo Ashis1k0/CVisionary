@@ -6,6 +6,57 @@ document.addEventListener('DOMContentLoaded', function() {
     const atsScoreSection = document.getElementById('atsScoreSection');
     const jobRecommendationsSection = document.getElementById('jobRecommendationsSection');
 
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.textContent = message;
+        toast.style.position = 'fixed';
+        toast.style.right = '20px';
+        toast.style.bottom = '20px';
+        toast.style.zIndex = '9999';
+        toast.style.padding = '10px 14px';
+        toast.style.borderRadius = '10px';
+        toast.style.color = '#fff';
+        toast.style.fontSize = '0.9rem';
+        toast.style.boxShadow = '0 8px 20px rgba(0,0,0,0.2)';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(8px)';
+        toast.style.transition = 'all 0.25s ease';
+        toast.style.background = type === 'error' ? '#dc2626' : '#16a34a';
+        toast.style.maxWidth = '320px';
+        toast.style.wordBreak = 'break-word';
+
+        document.body.appendChild(toast);
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+        });
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(8px)';
+            setTimeout(() => toast.remove(), 250);
+        }, 2200);
+    }
+
+    function resetAnalysisSections() {
+        const recommendationsList = document.getElementById('recommendationsList');
+        const suggestedJobsList = document.getElementById('suggestedJobsList');
+        const improvementsList = document.getElementById('improvementsList');
+
+        if (recommendationsList) recommendationsList.innerHTML = '';
+        if (suggestedJobsList) suggestedJobsList.innerHTML = '';
+        if (improvementsList) improvementsList.innerHTML = '';
+
+        if (jobRecommendationsSection) {
+            jobRecommendationsSection.classList.add('hidden');
+        }
+
+        const suggestedSection = document.getElementById('suggestedJobsSection');
+        if (suggestedSection) {
+            suggestedSection.classList.add('hidden');
+        }
+    }
+
     // Drag and drop handlers
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -47,6 +98,8 @@ document.addEventListener('DOMContentLoaded', function() {
     async function handleFileUpload(file) {
         try {
             loadingOverlay.classList.remove('hidden');
+            // Prevent stale recommendation cards from prior upload.
+            resetAnalysisSections();
             const formData = new FormData();
             formData.append('resume', file);
 
@@ -57,9 +110,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const data = await response.json();
             if (data.success) {
+                // Reset again right before rendering fresh response.
+                resetAnalysisSections();
                 displayResults(data.parsed_data);
                 if (data.improvements && data.improvements.length > 0) {
                     displayImprovements(data.improvements);
+                }
+                if (data.suggested_jobs && data.suggested_jobs.length > 0) {
+                    displaySuggestedJobs(data.suggested_jobs);
+                    document.getElementById('suggestedJobsSection').classList.remove('hidden');
+                } else {
+                    const section = document.getElementById('suggestedJobsSection');
+                    if (section) section.classList.add('hidden');
                 }
                 resultsSection.classList.remove('hidden');
             } else {
@@ -480,5 +542,83 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         `;
         document.head.appendChild(style);
+    }
+
+    function displaySuggestedJobs(jobs) {
+        const list = document.getElementById('suggestedJobsList');
+        if (!list) return;
+        list.innerHTML = '';
+        const appliedJobIds = new Set();
+
+        jobs.forEach(job => {
+            const jobCard = document.createElement('div');
+            jobCard.className = 'analysis-card job-card';
+
+            const matchScore = job.match_score || 0;
+            const matchColor = matchScore >= 4 ? '#16a34a' :
+                matchScore >= 2 ? '#ca8a04' :
+                    '#2563eb';
+
+            const matchingSkills = Array.isArray(job.matching_skills) ? job.matching_skills : [];
+
+            jobCard.innerHTML = `
+                <h3>
+                    <i class="fas fa-briefcase"></i>
+                    ${job.title}
+                    <span class="match-badge" style="background-color: ${matchColor}">
+                        ${matchScore} Match
+                    </span>
+                </h3>
+                <div class="card-content">
+                    <p class="job-description"><strong>${job.company}</strong> • ${job.location}</p>
+                    ${matchingSkills.length ? `
+                    <div class="skills-section">
+                        <h4><i class="fas fa-check-circle"></i> Matching Skills</h4>
+                        <div class="skills-list">
+                            ${matchingSkills.map(skill => `<span class="skill-tag matching">${skill}</span>`).join('')}
+                        </div>
+                    </div>` : ``}
+                    <div style="margin-top: 1rem;">
+                        <button class="action-button primary apply-job-btn" data-job-id="${job.job_id}" style="display:inline-block;">
+                            Apply
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            list.appendChild(jobCard);
+        });
+
+        list.querySelectorAll('.apply-job-btn').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const jobId = btn.getAttribute('data-job-id');
+                if (!jobId || appliedJobIds.has(jobId)) {
+                    return;
+                }
+
+                btn.disabled = true;
+                try {
+                    const response = await fetch(`/job/apply-ajax/${jobId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const data = await response.json();
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.message || 'Failed to apply');
+                    }
+
+                    appliedJobIds.add(jobId);
+                    btn.textContent = 'Applied';
+                    btn.classList.remove('primary');
+                    btn.classList.add('secondary');
+                    showToast(data.message || 'Application submitted', 'success');
+                } catch (error) {
+                    btn.disabled = false;
+                    showToast(error.message || 'Could not apply for the job', 'error');
+                }
+            });
+        });
     }
 });

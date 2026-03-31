@@ -1063,3 +1063,42 @@ MAX_CONTENT_LENGTH=16777216
 **Last Updated:** August 2025  
 **Approved By:** Development Team  
 **Next Review:** September 2025
+
+---
+
+## 13. Addendum: Recruiter + Jobs + Application Tracking (March 2026)
+
+### 13.1 Architecture Extension
+- Added recruiter-facing module with its own route group and templates.
+- Added jobs board module for candidates (`/jobs`) with search and one-click apply.
+- Added candidate application tracking module (`/jobs/applied`).
+- Existing resume parser, ATS scoring, Voice AI interview, and admin flows remain unchanged.
+
+### 13.2 New Components
+
+#### Route Components
+- `routes/recruiter_routes.py`
+  - recruiter auth, dashboard, job CRUD, recruiter applications view
+- `routes/job_routes.py`
+  - jobs board, apply APIs, candidate applied-jobs tracker
+
+#### Service Components
+- `services/job_matcher.py`
+  - matches candidate skills with posted jobs
+  - score = overlapping skill count
+  - returns top matches sorted descending
+
+### 13.3 Data Flow Extension
+1. Recruiter logs in and creates job post.
+2. Candidate uploads resume.
+3. Parsed skills are matched against `job_posts`.
+4. Suggested jobs are returned in `/upload` response.
+5. Candidate applies via AJAX or normal route.
+6. `job_applications` stores application records.
+7. Candidate monitors status via `/jobs/applied`.
+8. Recruiter monitors incoming applications via `/recruiter/applications`.
+
+### 13.4 Session Model Update
+- Candidate session: `user_logged_in`, `username`
+- Admin session: `admin_logged_in`, `admin_username`
+- Recruiter session: `recruiter_id`, `recruiter_name`, `recruiter_company`

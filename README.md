@@ -406,3 +406,38 @@ For support and questions:
 ---
 
 **CVisionary** - Transforming resume analysis with AI intelligence 🚀 
+
+## March 2026 Feature Update
+
+### Recruiter and Job Platform
+- Added recruiter auth and workflow routes:
+  - `/recruiter/register`
+  - `/recruiter/login`
+  - `/recruiter/dashboard`
+  - `/recruiter/logout`
+- Added recruiter job operations:
+  - `/recruiter/job/create`
+  - `/recruiter/job/edit/<job_id>`
+  - `/recruiter/job/delete/<job_id>`
+  - `/recruiter/jobs`
+  - `/recruiter/applications`
+
+### Jobs Board and Candidate Tracking
+- Added public/candidate jobs board:
+  - `GET /jobs` with search by job role, skills, and company (`q` query parameter)
+- Added apply APIs:
+  - `GET /job/apply/<job_id>` (redirect flow)
+  - `POST /job/apply-ajax/<job_id>` (AJAX flow, no page refresh)
+- Added candidate applied jobs tracker:
+  - `GET /jobs/applied`
+
+### Resume-Driven Job Suggestions
+- Resume upload API (`POST /upload`) now also returns:
+  - `suggested_jobs` matched from posted jobs by overlapping skills
+  - match score = number of matching skills, sorted descending
+
+### New Database Entities
+- `recruiters`
+- `job_posts`
+- `job_applications`
+- `interview_sessions` (Voice AI interview module)
