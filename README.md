@@ -441,3 +441,219 @@ For support and questions:
 - `job_posts`
 - `job_applications`
 - `interview_sessions` (Voice AI interview module)
+
+## Detailed API Reference (March 2026)
+
+### Auth and Session Notes
+- **Candidate auth session keys**: `user_logged_in`, `username`
+- **Admin auth session keys**: `admin_logged_in`, `admin_username`
+- **Recruiter auth session keys**: `recruiter_id`, `recruiter_name`, `recruiter_company`
+- Endpoints that require auth return either:
+  - HTTP redirect (for page routes), or
+  - JSON error with `401` (for AJAX/JSON routes)
+
+---
+
+### Candidate Resume and Matching APIs
+
+#### `POST /upload`
+- **Purpose**: Upload resume, parse details, calculate ATS score, generate improvement tips, and return suggested jobs.
+- **Content-Type**: `multipart/form-data`
+- **Auth**: Candidate login required
+- **Body**:
+  - `resume` (file, `.pdf` or `.docx`)
+- **Success Response**:
+```json
+{
+  "success": true,
+  "parsed_data": {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phone": "+1-123-456-7890",
+    "skills": ["python", "flask", "mysql"],
+    "education": [],
+    "experience": [],
+    "projects": []
+  },
+  "ats_score": 84,
+  "improvements": ["..."],
+  "suggested_jobs": [
+    {
+      "job_id": 1,
+      "title": "Python Developer",
+      "company": "TechCorp",
+      "location": "Remote",
+      "match_score": 3,
+      "matching_skills": ["python", "flask", "mysql"]
+    }
+  ]
+}
+```
+- **Error Cases**:
+  - `401`: not logged in
+  - invalid/unsupported file format
+  - parsing/storage failures
+
+#### `POST /ats-score`
+- **Purpose**: Compute ATS score from parsed JSON.
+- **Content-Type**: `application/json`
+- **Body**:
+```json
+{ "parsed_data": { "...": "..." } }
+```
+- **Response**:
+```json
+{ "score": 85 }
+```
+
+#### `POST /job-recommendations`
+- **Purpose**: Gemini-powered role recommendations from skills.
+- **Content-Type**: `application/json`
+- **Body**:
+```json
+{ "skills": ["python", "sql"] }
+```
+- **Response**:
+```json
+{
+  "recommendations": [
+    {
+      "title": "Data Analyst",
+      "match_percentage": 78,
+      "matching_skills": ["python", "sql"],
+      "recommended_skills": ["tableau"],
+      "description": "..."
+    }
+  ]
+}
+```
+
+---
+
+### Jobs Board and Application APIs
+
+#### `GET /jobs`
+- **Purpose**: Jobs board page with search.
+- **Query Params**:
+  - `q` (optional): search by title, skills, or company
+- **Response**: HTML page (`jobs_board.html`)
+
+#### `GET /jobs/applied`
+- **Purpose**: Candidate tracker page for all applied jobs.
+- **Auth**: Candidate login required
+- **Response**: HTML page (`candidate_applied_jobs.html`)
+
+#### `GET /job/apply/<job_id>`
+- **Purpose**: Apply to a job via redirect flow.
+- **Auth**: Candidate login required
+- **Behavior**:
+  - Prevents duplicate apply
+  - Creates `job_applications` row
+  - Redirects to home with flash message
+
+#### `POST /job/apply-ajax/<job_id>`
+- **Purpose**: Apply to a job without page refresh.
+- **Auth**: Candidate login required
+- **Response**:
+```json
+{
+  "success": true,
+  "applied": true,
+  "message": "Application submitted"
+}
+```
+- If already applied:
+```json
+{
+  "success": true,
+  "applied": true,
+  "message": "Already applied"
+}
+```
+
+---
+
+### Recruiter APIs
+
+#### `GET|POST /recruiter/register`
+- **Purpose**: Recruiter account creation.
+- **Form Fields**: `name`, `email`, `password`, `company`
+- **Response**: HTML + redirect to recruiter login on success.
+
+#### `GET|POST /recruiter/login`
+- **Purpose**: Recruiter login.
+- **Form Fields**: `email`, `password`
+- **Session Set**: `recruiter_id`, `recruiter_name`, `recruiter_company`
+
+#### `GET /recruiter/logout`
+- **Purpose**: Recruiter logout and session clear.
+
+#### `GET /recruiter/dashboard`
+- **Purpose**: Recruiter overview page with recent jobs.
+
+#### `GET|POST /recruiter/job/create`
+- **Purpose**: Create new job post.
+- **Form Fields**: `title`, `location`, `description`, `skills`, `experience`, `salary`
+
+#### `GET /recruiter/jobs`
+- **Purpose**: List recruiter’s own jobs.
+
+#### `GET|POST /recruiter/job/edit/<job_id>`
+- **Purpose**: Edit recruiter-owned job.
+
+#### `POST /recruiter/job/delete/<job_id>`
+- **Purpose**: Delete recruiter-owned job.
+- **Behavior**: Deletes related `job_applications` before deleting the job.
+
+#### `GET /recruiter/applications`
+- **Purpose**: View applications for recruiter’s jobs.
+- **Response fields shown**: candidate name/email, job title/company, ATS score, date, status.
+
+---
+
+### Voice AI Interview APIs
+
+#### `GET /interview/voice`
+- Voice interview page (candidate login required)
+
+#### `POST /interview/voice/start`
+- Generates interview session + questions
+- **Body**:
+```json
+{
+  "job_role": "Backend Developer",
+  "difficulty": "Medium",
+  "skills": "python, flask, mysql",
+  "experience": "2 years"
+}
+```
+- **Response**:
+```json
+{
+  "session_id": 10,
+  "total_questions": 5,
+  "question_index": 0,
+  "question": "Tell me about..."
+}
+```
+
+#### `POST /interview/voice/get_question`
+- **Body**:
+```json
+{ "session_id": 10 }
+```
+- Returns current question or `{ "finished": true }`.
+
+#### `POST /interview/voice/answer`
+- **Normal answer body**:
+```json
+{ "session_id": 10, "answer": "..." }
+```
+- **Force end body**:
+```json
+{ "session_id": 10, "force_end": true }
+```
+- **Response** includes `score`, `feedback`, `tips`, `finished`, optional `next_question`, and `redirect_url` on completion.
+
+#### `GET /interview/voice/result/<session_id>`
+- Final interview result page.

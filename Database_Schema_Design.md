@@ -710,3 +710,28 @@ CREATE TABLE interview_sessions (
 - `users (1) -> (N) job_applications`
 - `job_posts (1) -> (N) job_applications`
 - `users (1) -> (N) interview_sessions` (logical by `candidate_id`)
+
+### 13.4 API-to-Table Mapping
+- `POST /upload`
+  - reads/writes: `candidate_profiles`
+  - reads: `job_posts` (for suggestions)
+- `GET /jobs`
+  - reads: `job_posts`
+- `GET /jobs/applied`
+  - reads: `job_applications`, `job_posts`, `users`
+- `GET /job/apply/<job_id>` and `POST /job/apply-ajax/<job_id>`
+  - writes: `job_applications`
+  - reads: `users`
+- `GET|POST /recruiter/job/create`
+  - writes: `job_posts`
+  - reads: `recruiters`
+- `GET|POST /recruiter/job/edit/<job_id>`
+  - updates: `job_posts`
+- `POST /recruiter/job/delete/<job_id>`
+  - deletes: `job_posts`, related `job_applications`
+- `GET /recruiter/applications`
+  - reads: `job_applications`, `job_posts`, `users`, `candidate_profiles`
+- `POST /interview/voice/start`
+  - writes: `interview_sessions`
+- `POST /interview/voice/answer`
+  - updates: `interview_sessions`

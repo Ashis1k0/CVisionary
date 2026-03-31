@@ -1102,3 +1102,34 @@ MAX_CONTENT_LENGTH=16777216
 - Candidate session: `user_logged_in`, `username`
 - Admin session: `admin_logged_in`, `admin_username`
 - Recruiter session: `recruiter_id`, `recruiter_name`, `recruiter_company`
+
+### 13.5 Endpoint Matrix (Detailed)
+
+#### Resume and Analysis
+- `POST /upload` -> parse resume, ATS, improvements, job suggestions
+- `POST /ats-score` -> compute ATS score
+- `POST /job-recommendations` -> Gemini role recommendations
+
+#### Jobs and Applications
+- `GET /jobs` -> jobs board with search
+- `GET /jobs/applied` -> candidate application tracker
+- `GET /job/apply/<job_id>` -> redirect-based apply
+- `POST /job/apply-ajax/<job_id>` -> asynchronous apply JSON
+
+#### Recruiter
+- `GET|POST /recruiter/register`
+- `GET|POST /recruiter/login`
+- `GET /recruiter/logout`
+- `GET /recruiter/dashboard`
+- `GET|POST /recruiter/job/create`
+- `GET /recruiter/jobs`
+- `GET|POST /recruiter/job/edit/<job_id>`
+- `POST /recruiter/job/delete/<job_id>`
+- `GET /recruiter/applications`
+
+#### Voice Interview
+- `GET /interview/voice`
+- `POST /interview/voice/start`
+- `POST /interview/voice/get_question`
+- `POST /interview/voice/answer`
+- `GET /interview/voice/result/<id>`

@@ -563,3 +563,31 @@ The system follows a three-tier architecture:
   - recruiter accounts
   - job post metadata
   - candidate job applications and status history
+
+### 13.4 API Requirements (Detailed)
+
+#### Candidate APIs
+- `POST /upload` shall return parsed resume, ATS score, improvements, and matched jobs.
+- `POST /job-recommendations` shall return AI-generated recommendations from provided skills.
+- `POST /ats-score` shall return deterministic ATS score from parsed fields.
+- `GET /jobs` shall provide searchable jobs board by role/skills/company.
+- `GET /jobs/applied` shall provide candidate application tracking page.
+- `GET /job/apply/<job_id>` shall support redirect-based apply with duplicate prevention.
+- `POST /job/apply-ajax/<job_id>` shall support no-refresh apply and return JSON status.
+
+#### Recruiter APIs
+- `GET|POST /recruiter/register` shall register recruiter with unique email.
+- `GET|POST /recruiter/login` shall authenticate recruiter and create recruiter session.
+- `GET /recruiter/dashboard` shall show recruiter profile context and posted jobs.
+- `GET|POST /recruiter/job/create` shall create job post.
+- `GET /recruiter/jobs` shall show recruiter-owned jobs.
+- `GET|POST /recruiter/job/edit/<job_id>` shall allow editing own jobs only.
+- `POST /recruiter/job/delete/<job_id>` shall delete own jobs and dependent applications.
+- `GET /recruiter/applications` shall list applications against recruiter-owned jobs.
+
+#### Voice Interview APIs
+- `POST /interview/voice/start` shall initialize interview session and generate questions.
+- `POST /interview/voice/get_question` shall return current question or finished flag.
+- `POST /interview/voice/answer` shall evaluate answer, advance index, and return feedback.
+- `POST /interview/voice/answer` with `force_end=true` shall close interview early and return result redirect URL.
+- `GET /interview/voice/result/<id>` shall show final score and feedback.
